@@ -11,7 +11,7 @@ import tensorflow as tf
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
 mendian_imgs_path = "/home/users/liuxing/public/zhaoshang_signboard_imgs/"
 
-# cyvlfeat_path = "/home/users/liuxing/anaconda3/envs/tf2/lib/python3.6/site-packages/cyvlfeat/"
+# cyvlfeat_path = "${ANACONDA_PATH}/envs/tf2/lib/python3.6/site-packages/cyvlfeat/"
 
 image_types = (".jpg", ".jpeg", ".png", ".bmp", ".tif", ".tiff")
 
@@ -54,7 +54,7 @@ def get_feature(image, feature="sift"):
     return kp, des
 
 def test_img():
-    img = cv2.imread('/home/users/liuxing/public/logo_test_data/vari_pos/UCbrowser_1.jpg')
+    img = cv2.imread('./logo_test_data/vari_pos/UCbrowser_1.jpg')
     img1 = img.copy()
     gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
     import pdb;pdb.set_trace()
@@ -65,7 +65,7 @@ def feature_to_file(image_path, feature='sift'):
     feature_dir = os.path.join(CUR_PATH, "feature", feature)
     if not os.path.exists(feature_dir):
         os.makedirs(feature_dir)
-    fileout = os.path.join(feature_dir, 'zhaoshang_signboard_{}.txt'.format(feature))
+    fileout = os.path.join(feature_dir, '{}.txt'.format(feature))
     fout = open(fileout, 'w', encoding="utf-8")
     for imagepath in imagepaths:
         img = cv2.imread(imagepath)
@@ -168,9 +168,9 @@ def get_net_feature(imgpath, feature="resnet50-sift10"):
     if not os.path.exists(feature_dir):
         os.makedirs(feature_dir)
     if "query" in imgpath:
-        fileout = os.path.join(feature_dir, 'zhaoshang_signboard_{}.txt.query'.format(feature))
+        fileout = os.path.join(feature_dir, '{}.txt.query'.format(feature))
     else:
-        fileout = os.path.join(feature_dir, 'zhaoshang_signboard_{}.txt'.format(feature))
+        fileout = os.path.join(feature_dir, '{}.txt'.format(feature))
     fout = open(fileout, 'w', encoding="UTF-8")
     from tqdm import tqdm
     image_shape = (net_imgsize[net_feature], net_imgsize[net_feature], 3)
@@ -178,12 +178,12 @@ def get_net_feature(imgpath, feature="resnet50-sift10"):
     #model = get_model(net_feature)
    
     sift_str_dict = {}
-    sift_filename = "feature/sift/zhaoshang_signboard_imgpath.txt.sift-num10"
+    sift_filename = "feature/sift/imgpath.txt.sift-num10"
     for line in open(sift_filename).readlines():
         line = line.strip().split("\t")
         sift_str_dict[line[0]] = '\t'.join(line[1:])
 
-    base_img_url = "http://10.255.120.34:8080/share_data/liuxing07/zhaoshang"
+    base_img_url = "${SERVER_ADDR}"
     for imagepath in tqdm(imagepaths):
         try:
             print(imagepath)
@@ -201,7 +201,7 @@ def get_net_feature(imgpath, feature="resnet50-sift10"):
         
 def main():
     #test_img()
-    imgpath_file =  os.path.join(CUR_PATH, "zhaoshang_signboard_imgpath.txt")
+    imgpath_file =  os.path.join(CUR_PATH, "imgpath.txt")
     get_net_feature(imgpath_file)
     image_file_query = imgpath_file + ".query"
     get_net_feature(image_file_query)
