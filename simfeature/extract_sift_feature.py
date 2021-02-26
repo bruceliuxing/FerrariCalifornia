@@ -9,7 +9,7 @@ import tensorflow as tf
 #import skimage
 
 CUR_PATH = os.path.dirname(os.path.abspath(__file__))
-mendian_imgs_path = "/home/users/liuxing/public/zhaoshang_signboard_imgs/"
+mendian_imgs_path = "./imgs/"
 
 # cyvlfeat_path = "${ANACONDA_PATH}/envs/tf2/lib/python3.6/site-packages/cyvlfeat/"
 
