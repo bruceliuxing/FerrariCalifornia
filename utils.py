@@ -161,6 +161,32 @@
      task_futures = [p_executor.submit(thread_worker, ptask, modelname, tworker_num) for ptask in tasks_lists]
      p_executor.shutdown(wait=True)
   
+class opts(object):
+     def __init__(self):
+         self.parser = argparse.ArgumentParser()
+         self.parser.add_argument('--annotation_path', default='data/annotations', help='标注精灵助手标注结果(json形式导出)目录dir')
+         self.parser.add_argument('--classes', default='classes.txt', help='标注数据类别名称文件地址')
+         self.parser.add_argument('--out_anno_path', default="annotations", help='输出coco格式json文件')
+     def parse(self, args=''):
+         """
+         opt = opts().parse("--annotation_path crawler_annotation --classes classes.txt --out_anno_path annotations/".split(" "))
+         """
+         if args == '':
+             opt = self.parser.parse_args()
+         else:
+             opt = self.parser.parse_args(args)
+         opt.annotation_path = os.path.join(CUR_PATH, opt.annotation_path)
+         opt.classes = os.path.join(CUR_PATH, opt.classes)
+         if not os.path.exists(opt.annotation_path):
+             print("{} not exists!".format(opt.annotation_path))
+         if not os.path.exists(opt.classes):
+             print("{} not exists!".format(opt.classes))
+         return opt
+      
+  
+  
+  
+  
   def main():
      pass
 
