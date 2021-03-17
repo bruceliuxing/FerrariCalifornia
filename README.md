@@ -1,2 +1,2 @@
 # FerrariCalifornia
-Everything is difficult before it become easy.
+Everything is difficult before it becomes easy.
