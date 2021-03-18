@@ -61,6 +61,9 @@
              return True
      return False
 
+ def md5(string):
+     return hashlib.md5(string).hexdigest()
+    
  def cv_imread_check(image_path):
      """
      obtain valid image RGB format data
