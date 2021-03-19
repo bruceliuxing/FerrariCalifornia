@@ -33,12 +33,12 @@
      """
      logger = logging.getLogger()
      logger.setLevel(logging.DEBUG)
-     fh = logging.handlers.TimeRotatingFieldHandler(filename=log_file, when='midnight',
+     fh = logging.handlers.TimedRotatingFileHandler(filename=log_file, when='midnight',
                                                     interval=1, backupCount=10, encoding='UTF-8')
      #fh.setLevel(logging.DEBUG)
      formatter = logging.Formatter("%(asctime)s - %(filename)s[line:%(lineno)d] - %(levelname)s: %(message)s")
      fh.setFormatter(formatter)
-     logger.setHandler(fh)
+     logger.addHandler(fh)
      return logger
 
  def chinese2pinqin(word):
