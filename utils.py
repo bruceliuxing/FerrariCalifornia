@@ -186,6 +186,93 @@ class opts(object):
              print("{} not exists!".format(opt.classes))
          return opt
       
+sobel_x_kernel = np.array([[-1, 0, 1],
+                            [-2, 0, 2],
+                            [-1, 0, 1]])
+ sobel_y_kernel = np.array([[-1, -2, -1],
+                            [0, 0, 0],
+                            [1, 2, 1]])
+ sobel_45_kernel = np.array([[-1, -2, 0],
+                             [-1, 0, 1],
+                             [0, 1, 2]])
+ sobel_135_kernel = np.array([[0, -1, -2],
+                              [1, 0, -1],
+                              [2, 1, 0]])
+ def calculate_line_formula(endpoint):
+     """
+     endpoint: np.array([[x1,y1,x2,y2]], dtype=np.float32)
+     return: A, B, C
+     """
+     if isinstance(endpoint, np.ndarray):
+         x1, y1, x2, y2 = np.split(endpoint, endpoint.shape[1], axis=1)
+     else:
+         x1, y1, x2, y2 = endpoint
+     #     k = (y2 - y1) / (x2 - x1 + 1e-6)
+     #     b = np.mean(np.array([y1, y2]) - np.array([x1, x2]) * k)
+     #     return k, b
+     A = y2 - y1
+     B = x1 - x2
+     C = -0.5 * (A * x1 + B * y1 + A * x2 + B * y2)
+
+     return np.hstack((A, B, C))
+
+
+ def calculate_cross_point(line1, line2):
+     """
+     line: (k, b)
+     return: crossing point corordidate:(x, y)
+     """
+     #     A1, B1, C1 = line1
+     #     A2, B2, C2 = line2
+     A1, B1, C1 = line1
+     A2, B2, C2 = line2
+
+     x = -1 * (C1 * B2 - C2 * B1) / (A1 * B2 - A2 * B1 + 1e-6)
+     y = -1 * (C1 * A2 - C2 * A1) / (B1 * A2 - B2 * A1 + 1e-6)
+     return x, y
+    
+def is_point_in_poly(point, point_list):
+     """
+     point: input point which needs to be calculate
+     point_list: points with clock order of poly
+     """
+     isum = 0
+     point_x, point_y = point
+     icount = len(point_list)
+
+     if icount < 3:
+         return False
+     for i in range(icount):
+         p_start_x, p_start_y = point_list[i]
+         if i == icount - 1:
+             p_end_x, p_end_y = point_list[0]
+         else:
+             p_end_x, p_end_y = point_list[i+1]
+     if ((p_end_y > point_y) and (point_y >= p_start_y)) or ((p_end_y < point_y) and (point_y <= p_start_y)):
+         A, B, C = calculate_line_formula((p_start_x, p_start_y, p_end_x, p_end_y))
+         if not A == 0:
+             point_x_infer = -1 * (B*point_y + C)/A
+             if point_x_infer < point_x:
+                 isum += 1
+     if isum % 2 != 0:
+         return True
+     else:
+         return False
+
+ def point_line_distance(point, line):
+     """
+     point: (x, y)
+     line:  (A, B, C)直线方程参数
+     """
+     x, y = point
+     if isinstance(line, np.ndarray):
+         A, B, C = np.split(line, line.shape[1], axis=1)
+     else:
+         A, B, C = line
+
+     #     return np.abs(A*x + B*y + C) / (np.sqrt(A*A + B*B))
+
+     return np.abs(A*x + B*y + C) / (np.linalg.norm(np.hstack((A, B)), axis=1)[:, np.newaxis] + 1e-6)
   
   
   
