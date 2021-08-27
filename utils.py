@@ -282,9 +282,126 @@ def is_point_in_poly(point, point_list):
 
      return np.abs(A*x + B*y + C) / (np.linalg.norm(np.hstack((A, B)), axis=1)[:, np.newaxis] + 1e-6)
   
-  
-  
-  
+ class ParamError(ValueError):
+     pass
+
+ class Dataset(collections.Iterator):
+     def __init__(self, data_dir):
+         self.data_dir = os.path.abspath(data_dir)
+
+         if os.path.isfile(self.data_dir):
+             self.root = os.path.dirname(self.data_dir)
+             _, ext = os.path.splitext(self.data_dir)
+             if ext in ['.txt']:
+                 self.anno_txt = [self.data_dir]
+             else:
+                 raise ParamError(f'invalid data annotation file: [{self.data_dir}]')
+         elif os.path.isdir(self.data_dir):
+             self.root = self.data_dir
+             self.anno_txt = [os.path.join(self.data_dir, item)
+                              for item in os.listdir(os.path.abspath(self.data_dir)) if item.endswith('.txt')]
+         else:
+             self.anno_txt = []
+             raise ParamError(f'invalid data path: [{self.data_dir}]')
+
+         if self.anno_txt:
+             self.length_total = list(itertools.accumulate([len(open(item).readlines()) for item in self.anno_txt]))[-1]
+         else:
+             self.length_total = 0
+
+         self.annotation = self.__read__()
+         self.length = len(self.annotation)
+
+         self.index = 0
+     def __read__(self):
+         annotation_info = []
+         for anno_file in self.anno_txt:
+             for line in open(anno_file).readlines():
+                 if 'NULL' in line:
+                     continue
+                 annotation_info.append(line.strip())
+         return annotation_info
+
+     def __repr__(self):
+         fmt_str = f'Dataset {self.__class__.__name__} \n'
+         fmt_str += f'   Root location: {self.root}\n'
+         fmt_str += f'   Number of annotation files: [{len(self.anno_txt)}]\n'
+         fmt_str += f'   Number of annotation infos: [{self.length_total}]\n'
+         fmt_str += f'   Number of valid annotation infos: [{self.length}]\n'
+         fmt_str += f'   Number of error annotation infos: [{self.length_total - self.length}]'
+         return fmt_str
+
+     def __singleitem__(self, index):
+         if (index < self.length):
+             return self.annotation[index]
+         else:
+             print(f'index over the number. this index: [{index}]')
+             raise StopIteration
+     def __getitem__(self, index):
+         if isinstance(index, int):
+             return self.__singleitem__(index)
+         elif isinstance(index, tuple):
+             return [self.__singleitem__(ii) for ii in index]
+         elif isinstance(index, list):
+             return self.__getitem__(tuple(index))
+         elif isinstance(index, str):
+             index = index.strip()
+             try:
+                 index = int(index)
+                 return self.__getitem__(index)
+             except:
+                 if ',' in index:
+                     return self.__getitem__(ast.literal_eval(index))
+                 elif ' ' in index:
+                     return self.__getitem__(tuple([int(i) for i in index.split(' ')]))
+                 elif ':' in index:
+                     index_list = [int(ii) for ii in index.split(':')]
+                     if len(index_list) == 1:
+                         if index.startswith(':'):
+                             return self.__getitem__(tuple(range(0, index_list[0])))
+                         else:
+                             return self.__getitem__(tuple(range(index_list[0], self.length)))
+                     elif len(index) == 2:
+                         return self.__getitem__(tuple(range(index_list[0], index_list[1])))
+                     elif len(index) == 3:
+                         start = index[0]
+                         end = index[-1]
+                         step = index[1]
+                         return self.__getitem__(tuple(range(start, end, step)))
+                     else:
+                         raise ParamError(f'invalid index: [{index}]')
+                 else:
+                     raise ParamError(f'invalid index: [{index}]')
+         else:
+             raise ParamError(f'invalid index: [{index}]')
+
+     def __len__(self):
+         return self.length
+
+     def __iter__(self):
+         self.index = 0
+         return self
+       
+     def __next__(self):
+         while True:
+             try:
+                 info = self.annotation[self.index]
+             except IndexError:
+                 raise StopIteration
+             self.index += 1
+             return info
+
+     def data_transform(self):
+         raise NotImplementedError('data_transform not implemented!')
+
+     def target_transform(self):
+         raise NotImplementedError('target_transform not implemented!')
+
+
+     def get_data(self):
+         Xdata = self.data_transform()
+         Ydata = self.target_transform()
+         return Xdata, Ydata
   def main():
      pass
 
